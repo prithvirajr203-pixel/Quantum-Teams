@@ -1,0 +1,342 @@
+{
+  "name": "Auto -Telegram",
+  "nodes": [
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        352,
+        192
+      ],
+      "id": "cbaa5769-04bd-4c75-b3d9-bbe1eb4337e3",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "skAnqBUluPo3zgUU",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        1136,
+        192
+      ],
+      "id": "f11bbfa6-5b38-4751-a9e0-b2fbffac0ebb",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "skAnqBUluPo3zgUU",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Write an engaging social media caption about: {{ $('Topic_Generator').item.json.output }}",
+        "options": {
+          "systemMessage": "You are an expert Instagram content creator.\n\nYour task is to write exactly ONE Instagram caption based on the topic provided.\n\nRules:\n- Stay completely on the given topic.\n- Write 2–4 engaging sentences.\n- Use a friendly marketing tone.\n- Do not include hashtags.\n- Do not explain your work.\n- Output only the caption."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        336,
+        32
+      ],
+      "id": "95843874-56f5-4093-b1d1-fae58046732e",
+      "name": "Content_writer"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        800,
+        224
+      ],
+      "id": "ede4492e-3bf8-4f3b-90cf-93cf40a32d28",
+      "name": "Groq Chat Model2",
+      "credentials": {
+        "groqApi": {
+          "id": "skAnqBUluPo3zgUU",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Generate hashtags for this caption:\n\n{{$json.output}}",
+        "options": {
+          "systemMessage": "You are an Instagram hashtag expert.\n\nGenerate exactly 15 relevant Instagram hashtags.\n\nReturn only hashtags separated by spaces."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        736,
+        32
+      ],
+      "id": "b965d202-f04d-4949-b378-3996c595cd38",
+      "name": "Hastag"
+    },
+    {
+      "parameters": {
+        "url": "=https://image.pollinations.ai/prompt/{{encodeURIComponent($json.output)}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1520,
+        32
+      ],
+      "id": "3d783313-d691-4a96-8af4-faebcde95747",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Create a vivid, highly detailed image generation prompt based on this Instagram caption.\n\nCaption:\n{{ $json.output }}\n\nRules:\n- Randomly vary the subject each time: sometimes a person (vary gender, age, ethnicity, appearance), sometimes an object, food, nature scene, abstract art, or setting — do not default to the same type of subject repeatedly.\n- Vary the setting, lighting, color palette, camera angle, and mood each time.\n- Do not reuse visual elements, poses, or compositions from previous generations.\n- Return ONLY the image generation prompt, no explanations.",
+        "options": {
+          "systemMessage": "You are an expert AI Image Prompt Engineer specializing in photorealistic, \nscroll-stopping Instagram visuals.\n\nYour job is to convert an Instagram caption and topic into a single, highly \ndetailed image generation prompt.\n\nRULES:\n- Output ONE single sentence using comma-separated descriptive phrases only.\n- Maximum 40 words. This is a hard limit — never exceed it under any \n  circumstance.\n- Select only the 4-5 most visually striking details — do not attempt to \n  cover everything. Prioritize:\n  1. Main subject (what's in focus, its pose/action/state)\n  2. Lighting (e.g. golden hour, soft natural light, warm cinematic glow)\n  3. Color palette (2-3 specific colors or tones, e.g. warm beige and \n     amber, cool blue and white)\n  4. Composition/camera angle (e.g. close-up, overhead shot, shallow \n     depth of field, 45-degree angle)\n  5. Quality descriptors (e.g. photorealistic, sharp focus, professional \n     photography, high detail)\n- Always favor concrete, specific nouns and adjectives over vague ones \n  (e.g. \"steaming ceramic mug\" not \"coffee\", \"sunlit wooden desk\" not \n  \"background\").\n- Never include text, logos, watermarks, or written words in the scene.\n- Never include hashtags, captions, explanations, or labels.\n- Never use quotation marks.\n- Output ONLY the image prompt itself, nothing else."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1104,
+        16
+      ],
+      "id": "4ab461ea-b11b-4290-87d3-082cf9a3dd48",
+      "name": "Image_describer"
+    },
+    {
+      "parameters": {
+        "operation": "sendPhoto",
+        "chatId": "-1004409500919",
+        "binaryData": true,
+        "additionalFields": {
+          "caption": "={{ $('Content_writer').item.json.output }}  {{ $('Hastag').item.json.output }}"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1760,
+        32
+      ],
+      "id": "ae9eaeef-99bb-473a-a21c-e59ba44c1851",
+      "name": "Send a photo message",
+      "webhookId": "df750f76-81a0-41be-8e95-38ff4d8df82a",
+      "credentials": {
+        "telegramApi": {
+          "id": "fFczlwA6fX66AtOP",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 10
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -288,
+        16
+      ],
+      "id": "0e013a07-52f3-4d82-b51c-232a24839c1e",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Generate a new social media topic now.",
+        "options": {
+          "systemMessage": "You are an expert social media content strategist.\n\nEvery day, generate ONE unique and engaging topic for a social media post.\n\nChoose randomly from categories such as:\n- Technology\n- Artificial Intelligence\n- Education\n- Business\n- Entrepreneurship\n- Finance\n- Health & Fitness\n- Lifestyle\n- Productivity\n- Motivation\n- Self Improvement\n- Career\n- Programming\n- Science\n- Environment\n- Travel\n- History\n- Psychology\n- Books\n- Leadership\n- Marketing\n- Startups\n- Innovation\n- Space\n- Daily Facts\n- Quotes\n- Current Trends\n- Life Lessons\n\nRules:\n- Never ask the user for a topic.\n- Choose the topic automatically.\n- Avoid repeating recent topics.\n- Return only the topic title.\n- Do not include explanations."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -80,
+        16
+      ],
+      "id": "2c3ef884-78bb-49e4-9485-8896fd1b7cd5",
+      "name": "Topic_Generator"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        224
+      ],
+      "id": "ee012841-e2b1-4370-8c13-90b2610e72cf",
+      "name": "Groq Chat Model3",
+      "credentials": {
+        "groqApi": {
+          "id": "skAnqBUluPo3zgUU",
+          "name": "Groq account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Content_writer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Image_describer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Content_writer": {
+      "main": [
+        [
+          {
+            "node": "Hastag",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Hastag",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hastag": {
+      "main": [
+        [
+          {
+            "node": "Image_describer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image_describer": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Send a photo message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Topic_Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Topic_Generator": {
+      "main": [
+        [
+          {
+            "node": "Content_writer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Topic_Generator",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "timezone": "Asia/Kolkata",
+    "callerPolicy": "workflowsFromSameOwner",
+    "executionTimeout": -1,
+    "availableInMCP": false
+  },
+  "versionId": "c353759f-4db4-4dec-9ac9-9b242f29723e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "32a13ce105c02959e888f228708aea8afa6523700f3e0de5f2a59a5fdd040733"
+  },
+  "nodeGroups": [],
+  "id": "B3l2QHev85aKOc8b",
+  "tags": []
+}
