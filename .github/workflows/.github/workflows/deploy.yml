@@ -15,16 +15,29 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd /home/ubuntu/Quantum-Teams
+            cd /home/ubuntu/n8n-cicd-test
             git pull origin main
 
             cd /home/ubuntu/n8n
 
-            for file in /home/ubuntu/Quantum-Teams/*.json; do
+            for file in /home/ubuntu/n8n-cicd-test/*.json; do
               echo "Importing: $file"
               docker cp "$file" n8n-n8n-1:/tmp/workflow.json
               docker compose exec -T n8n n8n import:workflow --input=/tmp/workflow.json
             done
 
             docker compose restart n8n
-            echo "Deployment complete"
+            sleep 10
+
+            WORKFLOW_ID=$(curl -s "https://13.221.4.159.nip.io/api/v1/workflows" \
+              -H "X-N8N-API-KEY: ${{ secrets.N8N_API_KEY }}" | \
+              jq -r '.data[0].id')
+
+            echo "Activating workflow ID: $WORKFLOW_ID"
+
+            curl -X PATCH "https://13.221.4.159.nip.io/api/v1/workflows/$WORKFLOW_ID" \
+              -H "X-N8N-API-KEY: ${{ secrets.N8N_API_KEY }}" \
+              -H "Content-Type: application/json" \
+              -d '{"active": true}'
+
+            echo "Deployment complete - workflow activated"
