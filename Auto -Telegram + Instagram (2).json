@@ -1,0 +1,532 @@
+{
+  "name": "Auto -Telegram + Instagram",
+  "nodes": [
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        352,
+        192
+      ],
+      "id": "cbaa5769-04bd-4c75-b3d9-bbe1eb4337e3",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "skAnqBUluPo3zgUU",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        1136,
+        192
+      ],
+      "id": "f11bbfa6-5b38-4751-a9e0-b2fbffac0ebb",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "skAnqBUluPo3zgUU",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Write an engaging social media caption about: {{ $('Topic_Generator').item.json.output }}",
+        "options": {
+          "systemMessage": "You are an expert Instagram content creator.\n\nYour task is to write exactly ONE Instagram caption based on the topic provided.\n\nRules:\n- Stay completely on the given topic.\n- Write 2–4 engaging sentences.\n- Use a friendly marketing tone.\n- Do not include hashtags.\n- Do not explain your work.\n- Output only the caption."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        336,
+        32
+      ],
+      "id": "95843874-56f5-4093-b1d1-fae58046732e",
+      "name": "Content_writer"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        800,
+        224
+      ],
+      "id": "ede4492e-3bf8-4f3b-90cf-93cf40a32d28",
+      "name": "Groq Chat Model2",
+      "credentials": {
+        "groqApi": {
+          "id": "skAnqBUluPo3zgUU",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Generate hashtags for this caption:\n\n{{$json.output}}",
+        "options": {
+          "systemMessage": "You are an Instagram hashtag expert.\n\nGenerate exactly 15 relevant Instagram hashtags.\n\nReturn only hashtags separated by spaces."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        736,
+        32
+      ],
+      "id": "b965d202-f04d-4949-b378-3996c595cd38",
+      "name": "Hastag"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Create a premium corporate recruitment-themed social media image for a technology company.\n\nA modern software company office with a professional HR recruiter welcoming a talented software engineer candidate during an interview. Multiple developers are collaborating in the background using laptops and large monitors displaying programming code, AI dashboards, cloud architecture diagrams, and modern technology interfaces. Bright open workspace with glass meeting rooms, futuristic office interior, blue and white corporate branding, clean desks, subtle digital elements, innovation, teamwork, and career growth atmosphere.\n\nThe image should look like a high-end LinkedIn or company recruitment campaign. The composition must leave clean empty space at the top and bottom for adding hiring text later. Focus on professionalism, technology, and a premium business environment.\n\nUltra realistic, photorealistic, ultra detailed, HDR, 8K, sharp focus, cinematic lighting, masterpiece, highly detailed, realistic office, modern architecture, premium corporate marketing style, clean composition.\n\nNegative prompt:\nblurry, low quality, watermark, logo, distorted face, extra limbs, duplicate people, cropped image, cartoon, anime, illustration, painting, text, letters, words, captions, banners, signs, posters, noisy image, artifacts.",
+        "options": {
+          "systemMessage": "You are an expert AI Image Prompt Engineer specializing in photorealistic, \nscroll-stopping Instagram visuals.\n\nYour job is to convert an Instagram caption and topic into a single, highly \ndetailed image generation prompt.\n\nRULES:\n- Output ONE single sentence using comma-separated descriptive phrases only.\n- Maximum 40 words. This is a hard limit — never exceed it under any \n  circumstance.\n- Select only the 4-5 most visually striking details — do not attempt to \n  cover everything. Prioritize:\n  1. Main subject (what's in focus, its pose/action/state)\n  2. Lighting (e.g. golden hour, soft natural light, warm cinematic glow)\n  3. Color palette (2-3 specific colors or tones, e.g. warm beige and \n     amber, cool blue and white)\n  4. Composition/camera angle (e.g. close-up, overhead shot, shallow \n     depth of field, 45-degree angle)\n  5. Quality descriptors (e.g. photorealistic, sharp focus, professional \n     photography, high detail)\n- Always favor concrete, specific nouns and adjectives over vague ones \n  (e.g. \"steaming ceramic mug\" not \"coffee\", \"sunlit wooden desk\" not \n  \"background\").\n- Never include text, logos, watermarks, or written words in the scene.\n- Never include hashtags, captions, explanations, or labels.\n- Never use quotation marks.\n- Output ONLY the image prompt itself, nothing else."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1104,
+        16
+      ],
+      "id": "4ab461ea-b11b-4290-87d3-082cf9a3dd48",
+      "name": "Image_describer"
+    },
+    {
+      "parameters": {
+        "operation": "sendPhoto",
+        "chatId": "-1004409500919",
+        "file": "={{ $json.data.url }}",
+        "additionalFields": {
+          "caption": "={{ $('Content_writer').item.json.output }}  {{ $('Hastag').item.json.output }}"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1856,
+        16
+      ],
+      "id": "ae9eaeef-99bb-473a-a21c-e59ba44c1851",
+      "name": "Send a photo message",
+      "webhookId": "df750f76-81a0-41be-8e95-38ff4d8df82a",
+      "credentials": {
+        "telegramApi": {
+          "id": "fFczlwA6fX66AtOP",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 10
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -288,
+        16
+      ],
+      "id": "0e013a07-52f3-4d82-b51c-232a24839c1e",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Generate a new social media topic now.",
+        "options": {
+          "systemMessage": "You are an expert social media content strategist specializing in recruitment and hiring announcements for the Computer Science and Information Technology industry.\n\nEvery day, generate ONE unique hiring topic for a social media post.\n\nThe topic must automatically select a different CSE/IT-related role without asking the user.\n\nPossible roles include (but are not limited to):\n- Software Engineer\n- Full Stack Developer\n- Frontend Developer\n- Backend Developer\n- Java Developer\n- Python Developer\n- C++ Developer\n- React Developer\n- Node.js Developer\n- Mobile App Developer\n- Android Developer\n- iOS Developer\n- Flutter Developer\n- AI Engineer\n- Machine Learning Engineer\n- Deep Learning Engineer\n- Generative AI Engineer\n- Data Scientist\n- Data Analyst\n- Data Engineer\n- DevOps Engineer\n- Cloud Engineer\n- AWS Engineer\n- Azure Engineer\n- GCP Engineer\n- Cybersecurity Analyst\n- Security Engineer\n- SOC Analyst\n- Ethical Hacker\n- Network Engineer\n- System Administrator\n- Database Administrator\n- QA Engineer\n- Automation Test Engineer\n- UI/UX Designer\n- Product Designer\n- Blockchain Developer\n- IoT Engineer\n- Embedded Systems Engineer\n- Robotics Engineer\n- Game Developer\n- AR/VR Developer\n- Technical Support Engineer\n- Business Analyst\n- Product Manager\n- Scrum Master\n- Project Manager\n- Technical Writer\n- Internship openings\n- Fresher hiring\n- Graduate trainee hiring\n- Multiple role hiring\n- Referral hiring\n- Walk-in hiring\n- Remote hiring\n- Hybrid hiring\n\nRandomly vary the hiring format such as:\n- We're Hiring\n- Join Our Team\n- Now Hiring\n- Career Opportunity\n- Urgent Hiring\n- Internship Opening\n- Walk-In Drive\n- Referral Drive\n- Freshers Hiring\n- Multiple Openings\n- Immediate Joiners Required\n\nRandomly vary:\n- Company type (Startup, SaaS, AI Company, FinTech, EdTech, HealthTech, E-commerce, IT Services, Product Company, Cybersecurity Firm, Cloud Company, etc.)\n- Work mode (Remote, Hybrid, On-site)\n- Experience level (Fresher, 1–3 Years, 3–5 Years, Senior)\n- Employment type (Full-Time, Internship, Contract)\n\nRules:\n- Never ask the user for a topic.\n- Choose everything automatically.\n- Avoid repeating recently generated roles or formats.\n- Return ONLY the topic title.\n- Do not include hashtags.\n- Do not include descriptions.\n- Do not include explanations.\n- Do not generate image prompts.\n- Output must always be related to recruitment or hiring.\n\nExample outputs:\nWe're Hiring – AI Engineer (Remote)\nJoin Our Team – Frontend Developer\nUrgent Hiring – DevOps Engineer\nInternship Opening – Machine Learning Intern\nNow Hiring – Cybersecurity Analyst\nCareer Opportunity – Full Stack Developer\nFreshers Hiring – Java Developer\nMultiple Openings – Software Engineers\nReferral Drive – Cloud Engineer\nWalk-In Drive – Python Developer"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -80,
+        16
+      ],
+      "id": "2c3ef884-78bb-49e4-9485-8896fd1b7cd5",
+      "name": "Topic_Generator"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        224
+      ],
+      "id": "ee012841-e2b1-4370-8c13-90b2610e72cf",
+      "name": "Groq Chat Model3",
+      "credentials": {
+        "groqApi": {
+          "id": "skAnqBUluPo3zgUU",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.instagram.com/v25.0/28104114375878952/media",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"image_url\": \"{{ $('HTTP Request4').item.json.data.url }}\",\n  \"caption\": \"{{ $('Content_writer').item.json.output }} {{ $('Hastag').item.json.output }}\",\n  \"access_token\": \"IGAAZATN5CEBfJBZAFlkWVBWWjY3WWNKcUFQN1c3bHhaYVFxSXA1UGd4bkdjZA3pNemU5S1ptalVzaXVmVFRKS0pjanJjcGZALN04xOVBFcDFxS0wyNjhiLVpUamxoM0VveFlEMjlLWXVxMmZAmR0Q2YlNjenJpQWNodHFaanRXcGtYSQZDZD\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2032,
+        16
+      ],
+      "id": "035fbd70-f5f3-4cd6-8203-60b96d5f4d0c",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "url": "=https://image.pollinations.ai/prompt/{{encodeURIComponent($json.output)}}?seed={{Math.floor(Math.random()*1000000)}}&nologo=true",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1616,
+        1056
+      ],
+      "id": "75600484-66a9-4578-a444-b52561da7790",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.instagram.com/v25.0/28104114375878952/media_publish",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"creation_id\": \"{{ $json.id }}\",\n  \"access_token\": \"IGAAZATN5CEBfJBZAFlkWVBWWjY3WWNKcUFQN1c3bHhaYVFxSXA1UGd4bkdjZA3pNemU5S1ptalVzaXVmVFRKS0pjanJjcGZALN04xOVBFcDFxS0wyNjhiLVpUamxoM0VveFlEMjlLWXVxMmZAmR0Q2YlNjenJpQWNodHFaanRXcGtYSQZDZD\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2784,
+        320
+      ],
+      "id": "e55d3c44-3041-4c19-aeb5-7f68893f986d",
+      "name": "HTTP Request2"
+    },
+    {
+      "parameters": {
+        "url": "http://127.0.0.1:5000/generate",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "variant",
+              "value": "hiring"
+            },
+            {
+              "name": "prompt",
+              "value": "={{$json.output}}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1456,
+        16
+      ],
+      "id": "568f4faa-534e-4a65-a35e-02d6650820eb",
+      "name": "HTTP Request3"
+    },
+    {
+      "parameters": {
+        "amount": 30
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2240,
+        16
+      ],
+      "id": "59274556-a598-4b92-8231-8032346fe6cd",
+      "name": "Wait",
+      "webhookId": "9f2f5a26-77fd-45de-acb3-e9d9de917c79"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.imgbb.com/1/upload",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "key",
+              "value": "eb115931ac0a93806aa35579fa76782e"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "image",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1664,
+        16
+      ],
+      "id": "5f886bef-e97f-448b-ac57-4e5ec3a26533",
+      "name": "HTTP Request4"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.instagram.com/v25.0/28104114375878952/media_publish",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"creation_id\": \"{{ $json.id }}\",\n  \"access_token\": \"IGAAZATN5CEBfJBZAFlkWVBWWjY3WWNKcUFQN1c3bHhaYVFxSXA1UGd4bkdjZA3pNemU5S1ptalVzaXVmVFRKS0pjanJjcGZALN04xOVBFcDFxS0wyNjhiLVpUamxoM0VveFlEMjlLWXVxMmZAmR0Q2YlNjenJpQWNodHFaanRXcGtYSQZDZD\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2448,
+        16
+      ],
+      "id": "5978b306-2edf-415e-9282-90adf55ed45f",
+      "name": "HTTP Request5"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Content_writer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Image_describer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Content_writer": {
+      "main": [
+        [
+          {
+            "node": "Hastag",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Hastag",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hastag": {
+      "main": [
+        [
+          {
+            "node": "Image_describer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image_describer": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Topic_Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Topic_Generator": {
+      "main": [
+        [
+          {
+            "node": "Content_writer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Topic_Generator",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a photo message": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        []
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request3": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request4": {
+      "main": [
+        [
+          {
+            "node": "Send a photo message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "timezone": "Asia/Kolkata",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "cfd1e202-4e90-4f89-9724-75bbc2d55ab2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "32a13ce105c02959e888f228708aea8afa6523700f3e0de5f2a59a5fdd040733"
+  },
+  "nodeGroups": [],
+  "id": "B3l2QHev85aKOc8b",
+  "tags": []
+}
