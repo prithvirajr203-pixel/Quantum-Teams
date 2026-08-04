@@ -17,19 +17,23 @@ jobs:
           script: |
             cd /home/ubuntu/Quantum-Teams
             git pull origin main
-
             N8N_URL="https://13.221.4.159.nip.io"
             API_KEY="${{ secrets.N8N_API_KEY }}"
-
             for file in /home/ubuntu/Quantum-Teams/*.json; do
               WF_NAME=$(jq -r '.name' "$file")
               echo "Processing workflow: $WF_NAME"
-
-              EXISTING_ID=$(curl -s "$N8N_URL/api/v1/workflows" \
-                -H "X-N8N-API-KEY: $API_KEY" | \
-                jq -r --arg name "$WF_NAME" '.data[] | select(.name==$name) | .id' | head -1)
-
+              EXISTING_ID=$(curl -s "$N8N_URL/api/v1/workflows" -H "X-N8N-API-KEY: $API_KEY" | jq -r --arg name "$WF_NAME" '.data[] | select(.name==$name) | .id' | head -1)
               CLEAN_JSON=$(jq '{name, nodes, connections, settings}' "$file")
-
               if [ -n "$EXISTING_ID" ] && [ "$EXISTING_ID" != "null" ]; then
                 echo "Updating existing workflow ID: $EXISTING_ID"
+                curl -X PUT "$N8N_URL/api/v1/workflows/$EXISTING_ID" -H "X-N8N-API-KEY: $API_KEY" -H "Content-Type: application/json" -d "$CLEAN_JSON"
+                WORKFLOW_ID=$EXISTING_ID
+              else
+                echo "Creating new workflow"
+                RESPONSE=$(curl -s -X POST "$N8N_URL/api/v1/workflows" -H "X-N8N-API-KEY: $API_KEY" -H "Content-Type: application/json" -d "$CLEAN_JSON")
+                WORKFLOW_ID=$(echo "$RESPONSE" | jq -r '.id')
+              fi
+              echo "Activating workflow ID: $WORKFLOW_ID"
+              curl -X POST "$N8N_URL/api/v1/workflows/$WORKFLOW_ID/activate" -H "X-N8N-API-KEY: $API_KEY"
+            done
+            echo "Deployment complete"
