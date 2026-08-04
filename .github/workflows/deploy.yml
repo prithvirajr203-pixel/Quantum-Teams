@@ -1,0 +1,35 @@
+name: Deploy n8n Workflows to EC2
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/Quantum-Teams
+            git pull origin main
+
+            N8N_URL="https://13.221.4.159.nip.io"
+            API_KEY="${{ secrets.N8N_API_KEY }}"
+
+            for file in /home/ubuntu/Quantum-Teams/*.json; do
+              WF_NAME=$(jq -r '.name' "$file")
+              echo "Processing workflow: $WF_NAME"
+
+              EXISTING_ID=$(curl -s "$N8N_URL/api/v1/workflows" \
+                -H "X-N8N-API-KEY: $API_KEY" | \
+                jq -r --arg name "$WF_NAME" '.data[] | select(.name==$name) | .id' | head -1)
+
+              CLEAN_JSON=$(jq '{name, nodes, connections, settings}' "$file")
+
+              if [ -n "$EXISTING_ID" ] && [ "$EXISTING_ID" != "null" ]; then
+                echo "Updating existing workflow ID: $EXISTING_ID"
