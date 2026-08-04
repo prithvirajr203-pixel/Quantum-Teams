@@ -23,14 +23,12 @@ jobs:
             WF_NAME=$(jq -r '.name' "$file")
             echo "=============================="
             echo "Processing workflow: $WF_NAME"
-            echo "File: $file"
             EXISTING_ID=$(curl -s "$N8N_URL/api/v1/workflows" -H "X-N8N-API-KEY: $API_KEY" | jq -r --arg name "$WF_NAME" '.data[] | select(.name==$name) | .id' | head -1)
             echo "Existing ID found: $EXISTING_ID"
-            CLEAN_JSON=$(jq '{name, nodes, connections, settings}' "$file")
+            CLEAN_JSON=$(jq '{name, nodes, connections, settings: {executionOrder: "v1"}}' "$file")
             if [ -n "$EXISTING_ID" ] && [ "$EXISTING_ID" != "null" ]; then
               echo "Deactivating before update: $EXISTING_ID"
-              DEACT_RESPONSE=$(curl -s -X POST "$N8N_URL/api/v1/workflows/$EXISTING_ID/deactivate" -H "X-N8N-API-KEY: $API_KEY")
-              echo "Deactivate Response: $DEACT_RESPONSE"
+              curl -s -X POST "$N8N_URL/api/v1/workflows/$EXISTING_ID/deactivate" -H "X-N8N-API-KEY: $API_KEY" > /dev/null
               echo "Updating existing workflow ID: $EXISTING_ID"
               UPDATE_RESPONSE=$(curl -s -X PUT "$N8N_URL/api/v1/workflows/$EXISTING_ID" -H "X-N8N-API-KEY: $API_KEY" -H "Content-Type: application/json" -d "$CLEAN_JSON")
               echo "Update Response: $UPDATE_RESPONSE"
@@ -44,10 +42,8 @@ jobs:
             echo "Final Workflow ID: $WORKFLOW_ID"
             if [ "$WORKFLOW_ID" != "null" ] && [ -n "$WORKFLOW_ID" ]; then
               echo "Activating workflow ID: $WORKFLOW_ID"
-              ACT_RESPONSE=$(curl -s -X POST "$N8N_URL/api/v1/workflows/$WORKFLOW_ID/activate" -H "X-N8N-API-KEY: $API_KEY")
-              echo "Activate Response: $ACT_RESPONSE"
-            else
-              echo "Skipping activation - invalid workflow ID"
+              curl -s -X POST "$N8N_URL/api/v1/workflows/$WORKFLOW_ID/activate" -H "X-N8N-API-KEY: $API_KEY" > /dev/null
+              echo "Activated successfully"
             fi
             echo "=============================="
             echo "Deployment complete"
