@@ -1,4 +1,5 @@
 from flask import Flask, request, send_file, jsonify
+import os
 import requests
 import random
 import time
@@ -11,32 +12,32 @@ VARIANTS = {
         "main": "WE ARE HIRING",
         "sub": None,
         "prompts": [
-            "modern software developer workstation, multiple monitors with code, blue and purple neon glow, empty desk, no text, no logo, minimalist, wide shot",
-            "server room with glowing blue lights, rows of racks, futuristic data center, no text, no logo, cinematic",
-            "diverse team of developers standing together looking at a laptop screen, modern office, natural light, candid, professional photography, no text, no logo, photorealistic",
-            "young professional standing confidently in modern tech office, arms crossed, smiling, blurred background, professional photography, no text, no logo, photorealistic",
-            "team of coworkers sitting together at a table, laughing, bright startup office, candid photo, professional photography, no text, no logo, photorealistic",
-            "software engineer sitting at desk coding, smiling at camera, modern office background, professional photography, no text, no logo, photorealistic",
-            "group of coworkers standing in a meeting room discussing ideas, laptops open, natural light, professional photography, no text, no logo, photorealistic",
-            "startup tech office space, exposed brick, laptops on desks, warm amber lighting, no text, no logo",
-            "futuristic control room, multiple screens with data graphs, cyan glow, no text, no logo, cinematic",
-            "professional woman standing in modern office hallway, arms crossed, confident smile, professional photography, no text, no logo, photorealistic",
+            "confident software developer portrait office",
+            "young professional programmer smiling office",
+            "IT professional standing office portrait",
+            "software engineer smiling at camera office",
+            "confident tech employee portrait workplace",
+            "professional programmer headshot modern office",
+            "tech worker smiling office portrait",
+            "confident businesswoman tech office portrait",
+            "young developer standing office smiling",
+            "IT recruiter professional portrait office",
         ],
     },
     "ongoing": {
         "main": "WE ARE ONGOING",
         "sub": None,
         "prompts": [
-            "modern tech office hallway, glass walls, teal and silver lighting, no text, no logo, minimalist",
-            "team of coworkers walking together in bright office corridor, candid, professional photography, no text, no logo, photorealistic",
-            "data center server racks, glowing green indicator lights, no text, no logo, cinematic",
-            "two colleagues standing and smiling together in modern office, professional attire, professional photography, no text, no logo, photorealistic",
-            "developer team sitting together reviewing code on screen, collaborative, professional photography, no text, no logo, photorealistic",
-            "cloud technology abstract background, soft purple gradient, circuit patterns, no text, no logo",
-            "software company breakout area, coworkers chatting on bean bags, laptops, warm lighting, professional photography, no text, no logo, photorealistic",
-            "futuristic coding interface on large screen, cyan and white theme, no text, no logo, cinematic",
-            "tech startup office rooftop, city skyline, blue hour lighting, no text, no logo",
-            "professional man standing at standing desk with monitor, confident pose, modern office, professional photography, no text, no logo, photorealistic",
+            "tech office hallway computers",
+            "coworkers walking tech office",
+            "server racks data center",
+            "colleagues computer screen office",
+            "developer team code screen",
+            "cloud technology digital background",
+            "tech office breakout laptops",
+            "programming code screen computer",
+            "tech startup office computers",
+            "IT professional standing desk monitor computer",
         ],
     },
 }
@@ -49,6 +50,29 @@ FONT_BOLD = "fonts/Poppins-Bold.ttf"
 FONT_REGULAR = "fonts/Poppins-Regular.ttf"
 BG_PATH = "images/background.jpg"
 
+# ---- PEXELS API KEY ----
+PEXELS_API_KEY = "IhrL6knCRykPJzuHqRe6hwcXYvbKYCECNJReyX1bru5QPZkItrsmj12P"
+
+PEXELS_SEARCH_URL = "https://api.pexels.com/v1/search"
+PEXELS_HEADERS = {"Authorization": PEXELS_API_KEY}
+
+
+def simplify_prompt_for_search(text, max_words=5):
+    """
+    n8n's Image_describer node sends a long descriptive sentence.
+    Pexels search works best with short keyword phrases, so we trim
+    long AI-style prompts down to their first few meaningful words.
+    """
+    # Drop common filler/style words that don't help image search
+    stopwords = {
+        "a", "an", "the", "with", "and", "no", "text", "logo", "photorealistic",
+        "cinematic", "sharp", "focus", "lighting", "professional", "photography",
+        "empty", "space", "at", "top", "bottom", "of", "in", "on", "for",
+    }
+    words = text.replace(",", " ").replace(".", " ").split()
+    keywords = [w for w in words if w.lower() not in stopwords]
+    return " ".join(keywords[:max_words]) if keywords else text[:40]
+
 
 def generate_poster(variant_key, custom_prompt=None):
     if variant_key not in VARIANTS:
@@ -59,7 +83,8 @@ def generate_poster(variant_key, custom_prompt=None):
     SUB_TEXT = variant["sub"]
 
     if custom_prompt:
-        PROMPT = custom_prompt
+        # Long AI-style prompts (e.g. from n8n) get simplified into search keywords
+        PROMPT = simplify_prompt_for_search(custom_prompt)
     else:
         available = [p for p in variant["prompts"] if p not in _recent_prompts[variant_key]]
         if not available:
@@ -69,38 +94,94 @@ def generate_poster(variant_key, custom_prompt=None):
         if len(_recent_prompts[variant_key]) > _HISTORY_LIMIT:
             _recent_prompts[variant_key].pop(0)
 
-    SEED = random.randint(1, 1000000)
-    IMG_URL = f"https://image.pollinations.ai/prompt/{requests.utils.quote(PROMPT)}?seed={SEED}&nologo=true&width=1080&height=1080"
     OUTPUT_PATH = f"output/final_post_{variant_key}.jpg"
 
+    # Bias the search differently per variant:
+    # - "hiring" posts favor a real professional's portrait
+    # - "ongoing" posts favor tech/office environment shots (no bias toward people)
+    if variant_key == "hiring":
+        SEARCH_QUERY = f"{PROMPT} portrait professional"
+    else:
+        SEARCH_QUERY = f"{PROMPT} technology office"
+
     print(f"Generating '{variant_key}' post...")
-    print("URL:", IMG_URL)
+    print("Search query:", SEARCH_QUERY)
 
     MAX_RETRIES = 5
     RETRY_DELAY = 5
-    response = None
+    image_bytes = None
 
     for attempt in range(1, MAX_RETRIES + 1):
         try:
             print(f"Attempt {attempt}/{MAX_RETRIES}...")
-            response = requests.get(IMG_URL, timeout=90)
-            if response.status_code == 200:
+
+            # Step 1: search Pexels for a matching photo
+            search_response = requests.get(
+                PEXELS_SEARCH_URL,
+                headers=PEXELS_HEADERS,
+                params={
+                    "query": SEARCH_QUERY,
+                    "per_page": 15,
+                    "orientation": "square",
+                },
+                timeout=30
+            )
+
+            print("=" * 60)
+            print("Search Status Code:", search_response.status_code)
+
+            if search_response.status_code != 200:
+                print("Search Response Body:", search_response.text[:500])
+                print("=" * 60)
+                if attempt < MAX_RETRIES:
+                    print(f"Retrying in {RETRY_DELAY} seconds...\n")
+                    time.sleep(RETRY_DELAY)
+                    continue
+                else:
+                    raise Exception(f"Pexels search failed after {MAX_RETRIES} attempts.")
+
+            photos = search_response.json().get("photos", [])
+            if not photos:
+                print(f"No photos found for query '{PROMPT}'. Retrying.")
+                if attempt < MAX_RETRIES:
+                    time.sleep(RETRY_DELAY)
+                    continue
+                else:
+                    raise Exception(f"No Pexels photos found for query '{PROMPT}'.")
+
+            # Step 2: pick a random photo from the results, download it
+            chosen_photo = random.choice(photos)
+            image_url = chosen_photo["src"]["large"]
+
+            img_response = requests.get(image_url, timeout=60)
+            if img_response.status_code == 200 and "image" in img_response.headers.get("Content-Type", ""):
+                image_bytes = img_response.content
+                print("Image downloaded successfully from Pexels.")
                 break
             else:
-                print("Got status:", response.status_code, "- retrying...")
-        except requests.exceptions.RequestException as e:
-            print(f"Attempt {attempt} failed: {type(e).__name__}: {e}")
-            if attempt == MAX_RETRIES:
-                raise Exception("Could not reach Pollinations after multiple attempts.")
-        time.sleep(RETRY_DELAY)
+                print(f"Failed to download image. Status: {img_response.status_code}")
 
-    if response is None or response.status_code != 200:
-        raise Exception(f"Failed to download image. Status: {response.status_code if response else 'no response'}")
+            print("=" * 60)
+
+        except requests.exceptions.RequestException as e:
+            print("Network Error:", e)
+
+        if attempt < MAX_RETRIES:
+            print(f"Retrying in {RETRY_DELAY} seconds...\n")
+            time.sleep(RETRY_DELAY)
+        else:
+            raise Exception(f"Failed to get image after {MAX_RETRIES} attempts.")
+
+    if image_bytes is None:
+        raise Exception("Failed to download a valid image from Pexels.")
+
+    if not os.path.isdir("output"):
+        os.makedirs("output", exist_ok=True)
 
     with open(BG_PATH, "wb") as f:
-        f.write(response.content)
+        f.write(image_bytes)
 
-    print("Background downloaded successfully.")
+    print("Background image saved successfully.")
 
     img = Image.open(BG_PATH).convert("RGB")
     W, H = img.size
