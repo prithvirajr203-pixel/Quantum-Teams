@@ -209,7 +209,7 @@
     },
     {
       "parameters": {
-        "url": "https://n8n.io",
+        "url": "https://xexnaro.in/",
         "options": {
           "response": {
             "response": {
@@ -533,7 +533,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "7c911077-c810-430f-a72b-733683bc248f",
+  "versionId": "13de2dcd-37e4-4b9a-b4e5-352736108734",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "32a13ce105c02959e888f228708aea8afa6523700f3e0de5f2a59a5fdd040733"
