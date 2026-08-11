@@ -1,4 +1,4 @@
-name: Deploy n8n Workflows to EC2
+name: Deploy n8n + Python Agent to EC2
 
 on:
   push:
@@ -17,11 +17,24 @@ jobs:
           script: |
             cd /home/ubuntu/Quantum-Teams
             git pull origin main
+
+            echo "=============================="
+            echo "Deploying Python API..."
+            cd "/home/ubuntu/Quantum-Teams/n8n+ python"
+            pip3 install -r requirements.txt --break-system-packages
+            pkill -f "python3 app.py" || true
+            sleep 2
+            nohup python3 app.py > app.log 2>&1 &
+            sleep 3
+            echo "Python API status check:"
+            curl -s http://localhost:5000/ || echo "API not responding yet, check app.log"
+            echo "=============================="
+
+            cd /home/ubuntu/Quantum-Teams
             N8N_URL="https://13.221.4.159.nip.io"
             API_KEY="${{ secrets.N8N_API_KEY }}"
             file="/home/ubuntu/Quantum-Teams/Auto -Telegram + Instagram.json"
             WF_NAME=$(jq -r '.name' "$file")
-            echo "=============================="
             echo "Processing workflow: $WF_NAME"
             EXISTING_ID=$(curl -s "$N8N_URL/api/v1/workflows" -H "X-N8N-API-KEY: $API_KEY" | jq -r --arg name "$WF_NAME" '.data[] | select(.name==$name) | .id' | head -1)
             echo "Existing ID found: $EXISTING_ID"
