@@ -106,8 +106,8 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        1104,
-        16
+        1056,
+        32
       ],
       "id": "4ab461ea-b11b-4290-87d3-082cf9a3dd48",
       "name": "Image_describer"
@@ -116,7 +116,7 @@
       "parameters": {
         "operation": "sendPhoto",
         "chatId": "-1004409500919",
-        "file": "={{ $json.data.url }}",
+        "file": "={{ $('Img').item.json.data.url }}",
         "additionalFields": {
           "caption": "={{ $('Content_writer').item.json.output }}  {{ $('Hastag').item.json.output }}"
         }
@@ -124,8 +124,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1856,
-        16
+        2592,
+        48
       ],
       "id": "ae9eaeef-99bb-473a-a21c-e59ba44c1851",
       "name": "Send a photo message",
@@ -135,7 +135,8 @@
           "id": "fFczlwA6fX66AtOP",
           "name": "Telegram account"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -181,8 +182,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
       "typeVersion": 1,
       "position": [
-        -224,
-        224
+        -80,
+        256
       ],
       "id": "ee012841-e2b1-4370-8c13-90b2610e72cf",
       "name": "Groq Chat Model3",
@@ -200,8 +201,8 @@
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        2240,
-        16
+        3104,
+        64
       ],
       "id": "59274556-a598-4b92-8231-8032346fe6cd",
       "name": "Wait",
@@ -225,40 +226,8 @@
         16
       ],
       "id": "d1abd179-069f-46c2-8e2f-6fa67ff6f3ee",
-      "name": "Company"
-    },
-    {
-      "parameters": {
-        "url": "http://127.0.0.1:5000/generate",
-        "sendQuery": true,
-        "queryParameters": {
-          "parameters": [
-            {
-              "name": "variant",
-              "value": "hiring"
-            },
-            {
-              "name": "prompt",
-              "value": "={{$json.output}}"
-            }
-          ]
-        },
-        "options": {
-          "response": {
-            "response": {
-              "responseFormat": "file"
-            }
-          }
-        }
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        1456,
-        16
-      ],
-      "id": "568f4faa-534e-4a65-a35e-02d6650820eb",
-      "name": "Pillow"
+      "name": "Company",
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -266,14 +235,14 @@
         "url": "=https://graph.instagram.com/v25.0/28104114375878952/media",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"image_url\": \"{{ $('Img').item.json.data.url }}\",\n  \"caption\": \"{{ $('Content_writer').item.json.output }} {{ $('Hastag').item.json.output }}\",\n  \"access_token\": \"IGAAZATN5CEBfJBZAFlkWVBWWjY3WWNKcUFQN1c3bHhaYVFxSXA1UGd4bkdjZA3pNemU5S1ptalVzaXVmVFRKS0pjanJjcGZALN04xOVBFcDFxS0wyNjhiLVpUamxoM0VveFlEMjlLWXVxMmZAmR0Q2YlNjenJpQWNodHFaanRXcGtYSQZDZD\"\n}",
+        "jsonBody": "={\n  \"image_url\": \"{{ $('Img').item.json.data.image.url }}\",\n  \"caption\": \"{{ $('Content_writer').item.json.output }} {{ $('Hastag').item.json.output }}\",\n  \"access_token\": \"IGAAZATN5CEBfJBZAFlkWVBWWjY3WWNKcUFQN1c3bHhaYVFxSXA1UGd4bkdjZA3pNemU5S1ptalVzaXVmVFRKS0pjanJjcGZALN04xOVBFcDFxS0wyNjhiLVpUamxoM0VveFlEMjlLWXVxMmZAmR0Q2YlNjenJpQWNodHFaanRXcGtYSQZDZD\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        2080,
-        16
+        2848,
+        48
       ],
       "id": "035fbd70-f5f3-4cd6-8203-60b96d5f4d0c",
       "name": "Insta media"
@@ -290,7 +259,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        2448,
+        3424,
         16
       ],
       "id": "5978b306-2edf-415e-9282-90adf55ed45f",
@@ -325,8 +294,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        1664,
-        16
+        1632,
+        32
       ],
       "id": "5f886bef-e97f-448b-ac57-4e5ec3a26533",
       "name": "Img"
@@ -342,7 +311,152 @@
         16
       ],
       "id": "89fb46aa-295c-4851-8a19-e7f8fc71ea14",
-      "name": "Code in JavaScript"
+      "name": "Code in JavaScript",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "http://127.0.0.1:5000/generate",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "variant",
+              "value": "hiring"
+            },
+            {
+              "name": "prompt",
+              "value": "={{$json.output}}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1440,
+        32
+      ],
+      "id": "568f4faa-534e-4a65-a35e-02d6650820eb",
+      "name": "Pexel"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f34634f4-6998-47c5-be23-d369d5d94840",
+              "leftValue": "={{ $json.Approval }}",
+              "rightValue": "Decline",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2288,
+        32
+      ],
+      "id": "b5148b59-ae8b-47a2-a45d-4e675c2e24ee",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "resume": "form",
+        "formTitle": "Post Approval  ",
+        "formDescription": "Review the generated post before publishing. Choose Approve to publish it or Decline to generate a new topic and content.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Approval",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Approve"
+                  },
+                  {
+                    "option": "Decline"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldType": "html",
+              "elementName": "Content Section",
+              "html": "<img src=\"{{ $('Img').item.json.data.url }}\" width=\"220\" height=\"220\">"
+            },
+            {
+              "fieldLabel": "Content",
+              "fieldType": "textarea",
+              "defaultValue": "={{ $('Content_writer').item.json.output }}\n{{ $('Hastag').item.json.output }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2064,
+        -16
+      ],
+      "id": "4b413444-9b64-4141-9426-c885d34d7f9d",
+      "name": "Form",
+      "webhookId": "eda67514-ce2c-441e-a61b-9658b6478a1e"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ntfy.sh/prithivi-insta-approval-8x2f9",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "text/plain"
+            },
+            {
+              "name": "X-Click",
+              "value": "={{ $execution.resumeFormUrl }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "body": "New Instagram post ready for approval — tap to review",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1840,
+        0
+      ],
+      "id": "e9e9e717-fb5e-4fa1-a02b-8b0eb19b824d",
+      "name": "HTTP"
     }
   ],
   "pinData": {},
@@ -406,7 +520,7 @@
       "main": [
         [
           {
-            "node": "Pillow",
+            "node": "Pexel",
             "type": "main",
             "index": 0
           }
@@ -479,17 +593,6 @@
         ]
       ]
     },
-    "Pillow": {
-      "main": [
-        [
-          {
-            "node": "Img",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Insta media": {
       "main": [
         [
@@ -505,7 +608,7 @@
       "main": [
         [
           {
-            "node": "Send a photo message",
+            "node": "HTTP",
             "type": "main",
             "index": 0
           }
@@ -522,6 +625,57 @@
           }
         ]
       ]
+    },
+    "Pexel": {
+      "main": [
+        [
+          {
+            "node": "Img",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Topic_Generator",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a photo message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Form": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP": {
+      "main": [
+        [
+          {
+            "node": "Form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -533,7 +687,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "13de2dcd-37e4-4b9a-b4e5-352736108734",
+  "versionId": "7b3d5906-823f-40d5-966d-42b16a7f2eca",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "32a13ce105c02959e888f228708aea8afa6523700f3e0de5f2a59a5fdd040733"
