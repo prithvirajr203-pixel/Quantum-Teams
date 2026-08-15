@@ -1,4 +1,4 @@
-name: Deploy n8n Workflows to EC2
+name: Deploy n8n + Python Agent to EC2
 
 on:
   push:
@@ -17,15 +17,30 @@ jobs:
           script: |
             cd /home/ubuntu/Quantum-Teams
             git pull origin main
+
+            echo "=============================="
+            echo "Deploying Python API..."
+            cd "/home/ubuntu/Quantum-Teams/n8n+ python"
+            pip3 install flask requests pillow --break-system-packages
+            sudo systemctl restart imagegen
+            sleep 3
+            sudo systemctl status imagegen --no-pager
+            echo "=============================="
+
+            echo "Deploying n8n workflow..."
+            cd /home/ubuntu/Quantum-Teams
+
             N8N_URL="https://13.221.4.159.nip.io"
             API_KEY="${{ secrets.N8N_API_KEY }}"
             file="/home/ubuntu/Quantum-Teams/Auto -Telegram + Instagram.json"
             WF_NAME=$(jq -r '.name' "$file")
-            echo "=============================="
             echo "Processing workflow: $WF_NAME"
+
             EXISTING_ID=$(curl -s "$N8N_URL/api/v1/workflows" -H "X-N8N-API-KEY: $API_KEY" | jq -r --arg name "$WF_NAME" '.data[] | select(.name==$name) | .id' | head -1)
             echo "Existing ID found: $EXISTING_ID"
+
             CLEAN_JSON=$(jq '{name, nodes, connections, settings: {executionOrder: "v1"}}' "$file")
+
             if [ -n "$EXISTING_ID" ] && [ "$EXISTING_ID" != "null" ]; then
               echo "Deactivating before update: $EXISTING_ID"
               curl -s -X POST "$N8N_URL/api/v1/workflows/$EXISTING_ID/deactivate" -H "X-N8N-API-KEY: $API_KEY" > /dev/null
@@ -39,11 +54,13 @@ jobs:
               echo "Create Response: $RESPONSE"
               WORKFLOW_ID=$(echo "$RESPONSE" | jq -r '.id')
             fi
+
             echo "Final Workflow ID: $WORKFLOW_ID"
             if [ "$WORKFLOW_ID" != "null" ] && [ -n "$WORKFLOW_ID" ]; then
               echo "Activating workflow ID: $WORKFLOW_ID"
               curl -s -X POST "$N8N_URL/api/v1/workflows/$WORKFLOW_ID/activate" -H "X-N8N-API-KEY: $API_KEY" > /dev/null
               echo "Activated successfully"
             fi
+
             echo "=============================="
-            echo "Deployment complete"
+            echo "Deployment complete - n8n + python-api both running"
