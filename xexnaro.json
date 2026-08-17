@@ -1,0 +1,696 @@
+{
+  "name": "xexnaro",
+  "nodes": [
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -1760,
+        304
+      ],
+      "id": "323d8675-0715-4713-85a5-63d53aa66a49",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "skAnqBUluPo3zgUU",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -944,
+        272
+      ],
+      "id": "114ebce5-9e3b-476c-8d27-8aaf71f90c44",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "skAnqBUluPo3zgUU",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Write an engaging social media caption about: {{ $('Topic_Generator').item.json.output }}",
+        "options": {
+          "systemMessage": "You are an expert Instagram content creator.\n\nYour task is to write exactly ONE Instagram caption based on the topic provided.\n\nRules:\n- Stay completely on the given topic.\n- Write 2–4 engaging sentences.\n- Use a friendly marketing tone.\n- Do not include hashtags.\n- Do not explain your work.\n- Output only the caption."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -1728,
+        48
+      ],
+      "id": "64a9c7b2-2b07-4a14-b113-c2c505b5f221",
+      "name": "Content_writer"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -1328,
+        224
+      ],
+      "id": "4237826d-23b6-4df6-a978-e2cd7265f499",
+      "name": "Groq Chat Model2",
+      "credentials": {
+        "groqApi": {
+          "id": "skAnqBUluPo3zgUU",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Generate hashtags for this caption:\n\n{{$json.output}}",
+        "options": {
+          "systemMessage": "You are an Instagram hashtag expert.\n\nGenerate exactly 15 relevant Instagram hashtags.\n\nReturn only hashtags separated by spaces."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -1328,
+        48
+      ],
+      "id": "b6c6090e-9a82-4a53-a593-08d5e1c4878b",
+      "name": "Hastag"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Create a premium corporate recruitment-themed social media image for a technology company.\n\nA modern software company office with a professional HR recruiter welcoming a talented software engineer candidate during an interview. Multiple developers are collaborating in the background using laptops and large monitors displaying programming code, AI dashboards, cloud architecture diagrams, and modern technology interfaces. Bright open workspace with glass meeting rooms, futuristic office interior, blue and white corporate branding, clean desks, subtle digital elements, innovation, teamwork, and career growth atmosphere.\n\nThe image should look like a high-end LinkedIn or company recruitment campaign. The composition must leave clean empty space at the top and bottom for adding hiring text later. Focus on professionalism, technology, and a premium business environment.\n\nUltra realistic, photorealistic, ultra detailed, HDR, 8K, sharp focus, cinematic lighting, masterpiece, highly detailed, realistic office, modern architecture, premium corporate marketing style, clean composition.\n\nNegative prompt:\nblurry, low quality, watermark, logo, distorted face, extra limbs, duplicate people, cropped image, cartoon, anime, illustration, painting, text, letters, words, captions, banners, signs, posters, noisy image, artifacts.",
+        "options": {
+          "systemMessage": "You are an expert AI Image Prompt Engineer specializing in photorealistic, \nscroll-stopping Instagram visuals.\n\nYour job is to convert an Instagram caption and topic into a single, highly \ndetailed image generation prompt.\n\nRULES:\n- Output ONE single sentence using comma-separated descriptive phrases only.\n- Maximum 40 words. This is a hard limit — never exceed it under any \n  circumstance.\n- Select only the 4-5 most visually striking details — do not attempt to \n  cover everything. Prioritize:\n  1. Main subject (what's in focus, its pose/action/state)\n  2. Lighting (e.g. golden hour, soft natural light, warm cinematic glow)\n  3. Color palette (2-3 specific colors or tones, e.g. warm beige and \n     amber, cool blue and white)\n  4. Composition/camera angle (e.g. close-up, overhead shot, shallow \n     depth of field, 45-degree angle)\n  5. Quality descriptors (e.g. photorealistic, sharp focus, professional \n     photography, high detail)\n- Always favor concrete, specific nouns and adjectives over vague ones \n  (e.g. \"steaming ceramic mug\" not \"coffee\", \"sunlit wooden desk\" not \n  \"background\").\n- Never include text, logos, watermarks, or written words in the scene.\n- Never include hashtags, captions, explanations, or labels.\n- Never use quotation marks.\n- Output ONLY the image prompt itself, nothing else."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -1008,
+        48
+      ],
+      "id": "9224e583-f2d1-4a06-8d28-7b239eb8530b",
+      "name": "Image_describer"
+    },
+    {
+      "parameters": {
+        "operation": "sendPhoto",
+        "chatId": "-1004409500919",
+        "file": "={{ $('Img').item.json.data.url }}",
+        "additionalFields": {
+          "caption": "={{ $('Content_writer').item.json.output }}  {{ $('Hastag').item.json.output }}"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        528,
+        64
+      ],
+      "id": "d9d2a7cb-72b5-48d7-b509-ecf2ee313e4d",
+      "name": "Send a photo message",
+      "webhookId": "df750f76-81a0-41be-8e95-38ff4d8df82a",
+      "credentials": {
+        "telegramApi": {
+          "id": "fFczlwA6fX66AtOP",
+          "name": "Telegram account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 10
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -2960,
+        16
+      ],
+      "id": "f4c7f58d-36e9-4205-b97f-f97e006ebe73",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Generate a new social media topic now.",
+        "options": {
+          "systemMessage": "=You are an expert social media content strategist specializing in recruitment \nand hiring announcements.\n\nCompany website content:\n{{ $json.cleanText\n\n\n}}\n\nExtract the actual company name and what the company does from the content \nabove. Generate a hiring topic that fits this company (e.g. if it's a workflow \nautomation company, favor Backend Developer, DevOps Engineer, or Product roles).\n\n---\n\n[keep your existing role list, format rules, and output rules below this]\n\n\n- Output ONLY the final hiring topic title on its own line.\n- Do NOT include labels like \"Company Name:\", \"Company Description:\", \n  \"Hiring Topic:\", or any other prefix/header.\n- Do NOT include explanations, job descriptions, or extra text."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -2144,
+        32
+      ],
+      "id": "b7d825f0-3b5b-4b29-8bb0-fba2acd33036",
+      "name": "Topic_Generator"
+    },
+    {
+      "parameters": {
+        "amount": 30
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1040,
+        80
+      ],
+      "id": "780116ae-73ba-492a-be40-55d55c663d91",
+      "name": "Wait",
+      "webhookId": "9f2f5a26-77fd-45de-acb3-e9d9de917c79"
+    },
+    {
+      "parameters": {
+        "url": "https://xenhra.in/",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -2640,
+        32
+      ],
+      "id": "9005f983-f077-4b25-8bdf-107bdf963c4c",
+      "name": "Company",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.instagram.com/v25.0/27769612259348058/media",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"image_url\": \"{{ $('Img').item.json.data.url }}\",\n  \"caption\": \"{{ $('Content_writer').item.json.output.replace(/\\n/g, ' ').replace(/\"/g, '') }} {{ $('Hastag').item.json.output.replace(/\\n/g, ' ').replace(/\"/g, '') }}\",\n  \"access_token\": \"IGAAOyOdq1LDtBZAGJCU2c4cmJnQW4ySTlTUVhWOV9aNEFOWnh4UWQ5NjhUNlZA6ZAlVMQmc5S3AxWXhtLU1rZAGRfWjIyQ2ZAlSUpoUGdKeTZAzYTU4d2RpSENTSEpINnNnTFlRd1ZAoNzhXTkpYbDBDQTZAYcklqeGI4UWNjN0FIcGg2dwZDZD\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        784,
+        64
+      ],
+      "id": "4933e947-220b-4063-b082-7cbb8b4b1e98",
+      "name": "Insta media"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.instagram.com/v25.0/27769612259348058/media_publish",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"creation_id\": \"{{ $json.id }}\",\n  \"access_token\": \"IGAAOyOdq1LDtBZAGJCU2c4cmJnQW4ySTlTUVhWOV9aNEFOWnh4UWQ5NjhUNlZA6ZAlVMQmc5S3AxWXhtLU1rZAGRfWjIyQ2ZAlSUpoUGdKeTZAzYTU4d2RpSENTSEpINnNnTFlRd1ZAoNzhXTkpYbDBDQTZAYcklqeGI4UWNjN0FIcGg2dwZDZD\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1360,
+        32
+      ],
+      "id": "73f91d31-a988-42a5-9133-2d259a5559c5",
+      "name": "Post"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.imgbb.com/1/upload",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "key",
+              "value": "eb115931ac0a93806aa35579fa76782e"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "image",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -432,
+        48
+      ],
+      "id": "c492b7a6-3ffe-4545-9594-588282154028",
+      "name": "Img"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Strip HTML tags and trim to a safe length\nconst html = $input.item.json.data;\nconst text = html\n  .replace(/<style[^>]*>.*?<\\/style>/gs, '')   // remove CSS\n  .replace(/<script[^>]*>.*?<\\/script>/gs, '') // remove JS\n  .replace(/<[^>]+>/g, ' ')                     // strip remaining tags\n  .replace(/\\s+/g, ' ')                         // collapse whitespace\n  .trim();\n\nreturn {\n  json: {\n    cleanText: text.slice(0, 3000) // keep only first ~3000 characters\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2432,
+        32
+      ],
+      "id": "7249ea03-5fc4-48fd-b595-e5c197be271c",
+      "name": "Code in JavaScript",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "http://127.0.0.1:5000/generate",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "variant",
+              "value": "hiring"
+            },
+            {
+              "name": "prompt",
+              "value": "={{$json.output}}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -624,
+        48
+      ],
+      "id": "9f9b1c3a-75b7-4f19-8ba1-9ac740443fb4",
+      "name": "Pexel"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f34634f4-6998-47c5-be23-d369d5d94840",
+              "leftValue": "={{ $json.Approval }}",
+              "rightValue": "Decline",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        224,
+        48
+      ],
+      "id": "f62d1aeb-42e8-477c-9862-7655f57a109b",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "resume": "form",
+        "formTitle": "Post Approval  ",
+        "formDescription": "Review the generated post before publishing. Choose Approve to publish it or Decline to generate a new topic and content.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Approval",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Approve"
+                  },
+                  {
+                    "option": "Decline"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldType": "html",
+              "elementName": "Content Section",
+              "html": "<img src=\"{{ $('Img').item.json.data.url }}\" width=\"220\" height=\"220\">"
+            },
+            {
+              "fieldLabel": "Content",
+              "fieldType": "textarea",
+              "defaultValue": "={{ $('Content_writer').item.json.output }}\n{{ $('Hastag').item.json.output }}"
+            }
+          ]
+        },
+        "limitWaitTime": true,
+        "resumeAmount": 2,
+        "resumeUnit": "minutes",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "cbd39eb1-b098-480a-a164-83d68d6ccc68",
+      "name": "Form",
+      "webhookId": "eda67514-ce2c-441e-a61b-9658b6478a1e"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ntfy.sh/xexnaro-social-approvals-8x2f9k",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "text/plain"
+            },
+            {
+              "name": "X-Click",
+              "value": "={{ $execution.resumeFormUrl }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "body": "New Instagram post ready for approval — tap to review",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -224,
+        16
+      ],
+      "id": "eea45768-d664-4461-b59f-e5657b01e9ce",
+      "name": "HTTP"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -2288,
+        240
+      ],
+      "id": "aeff730e-62e4-46de-adc2-383a2fc97672",
+      "name": "Groq Chat Model3",
+      "credentials": {
+        "groqApi": {
+          "id": "skAnqBUluPo3zgUU",
+          "name": "Groq account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Content_writer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Image_describer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Content_writer": {
+      "main": [
+        [
+          {
+            "node": "Hastag",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Hastag",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hastag": {
+      "main": [
+        [
+          {
+            "node": "Image_describer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image_describer": {
+      "main": [
+        [
+          {
+            "node": "Pexel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Company",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Topic_Generator": {
+      "main": [
+        [
+          {
+            "node": "Content_writer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a photo message": {
+      "main": [
+        [
+          {
+            "node": "Insta media",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Company": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insta media": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Img": {
+      "main": [
+        [
+          {
+            "node": "HTTP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Topic_Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pexel": {
+      "main": [
+        [
+          {
+            "node": "Img",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Topic_Generator",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a photo message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Form": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP": {
+      "main": [
+        [
+          {
+            "node": "Form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Topic_Generator",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "04b85afc-7dc7-4fd8-9bb3-9b996d80b313",
+  "meta": {
+    "instanceId": "32a13ce105c02959e888f228708aea8afa6523700f3e0de5f2a59a5fdd040733"
+  },
+  "nodeGroups": [],
+  "id": "EaILnTv7Q7gm2yPI",
+  "tags": []
+}
