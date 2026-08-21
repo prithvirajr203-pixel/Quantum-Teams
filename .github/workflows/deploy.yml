@@ -19,12 +19,20 @@ jobs:
             git pull origin main
 
             echo "=============================="
-            echo "Deploying Python API..."
+            echo "Deploying Python API 1 (port 5000)..."
             cd "/home/ubuntu/Quantum-Teams/n8n+ python"
             pip3 install flask requests pillow --break-system-packages
             sudo systemctl restart imagegen
-            sleep 3
+            sleep 2
             sudo systemctl status imagegen --no-pager
+
+            echo "=============================="
+            echo "Deploying Python API 2 (port 5001)..."
+            cd "/home/ubuntu/Quantum-Teams/n8n+ python 1"
+            pip3 install -r requirements.txt --break-system-packages
+            sudo systemctl restart imagegen2
+            sleep 2
+            sudo systemctl status imagegen2 --no-pager
             echo "=============================="
 
             echo "Deploying n8n workflows..."
@@ -50,26 +58,21 @@ jobs:
               CLEAN_JSON=$(jq '{name, nodes, connections, settings: {executionOrder: "v1"}}' "$full_path")
 
               if [ -n "$EXISTING_ID" ] && [ "$EXISTING_ID" != "null" ]; then
-                echo "Deactivating before update: $EXISTING_ID"
                 curl -s -X POST "$N8N_URL/api/v1/workflows/$EXISTING_ID/deactivate" -H "X-N8N-API-KEY: $API_KEY" > /dev/null
-                echo "Updating existing workflow ID: $EXISTING_ID"
                 UPDATE_RESPONSE=$(curl -s -X PUT "$N8N_URL/api/v1/workflows/$EXISTING_ID" -H "X-N8N-API-KEY: $API_KEY" -H "Content-Type: application/json" -d "$CLEAN_JSON")
                 echo "Update Response: $UPDATE_RESPONSE"
                 WORKFLOW_ID=$EXISTING_ID
               else
-                echo "Creating new workflow"
                 RESPONSE=$(curl -s -X POST "$N8N_URL/api/v1/workflows" -H "X-N8N-API-KEY: $API_KEY" -H "Content-Type: application/json" -d "$CLEAN_JSON")
                 echo "Create Response: $RESPONSE"
                 WORKFLOW_ID=$(echo "$RESPONSE" | jq -r '.id')
               fi
 
-              echo "Final Workflow ID: $WORKFLOW_ID"
               if [ "$WORKFLOW_ID" != "null" ] && [ -n "$WORKFLOW_ID" ]; then
-                echo "Activating workflow ID: $WORKFLOW_ID"
                 curl -s -X POST "$N8N_URL/api/v1/workflows/$WORKFLOW_ID/activate" -H "X-N8N-API-KEY: $API_KEY" > /dev/null
-                echo "Activated successfully"
+                echo "Activated: $WORKFLOW_ID"
               fi
             done
 
             echo "=============================="
-            echo "Deployment complete - all workflows + python-api processed"
+            echo "Deployment complete - both python services + all workflows"
